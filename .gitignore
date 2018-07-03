@@ -2,4 +2,5 @@ env/
 .vscode/
 *.py[poc]
 *.sw[poc]
-
+.DS_Store
+*.pk

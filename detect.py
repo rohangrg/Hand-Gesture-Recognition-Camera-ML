@@ -1,6 +1,7 @@
 import cv2
 import imutils
 import numpy as np
+import pickle as pk
 
 bg = None
 
@@ -48,6 +49,18 @@ def segment(image, threshold=25):
 # Main function
 #-------------------------------------------------------------------------------
 if __name__ == "__main__":
+
+	# hand or not model
+	with open('model.pk', "rb+") as f:
+		model = pk.load(f)
+
+	# PCA transformer
+	with open("transformer.pk", "rb+") as f:
+		transformer = pk.load(f)
+
+	# counter for image save
+	counter = 1
+
 	# initialize weight for running average
 	aWeight = 0.5
 
@@ -102,6 +115,15 @@ if __name__ == "__main__":
 				# cv2.drawContours(clone, [segmented + (right, top)], -1, (0, 0, 255))
 				cv2.imshow("Thesholded", thresholded)
 
+
+				arr = np.asarray(thresholded)
+				arr = arr.reshape((1, arr.shape[0] * arr.shape[1]))
+
+				arr = transformer.transform(arr)
+
+				print(model.predict_log_proba(arr)[:, 1])
+				
+
 		# draw the segmented hand
 		cv2.rectangle(clone, (left, top), (right, bottom), (0,255,0), 2)
 
@@ -117,6 +139,10 @@ if __name__ == "__main__":
 		# if the user pressed "q", then stop looping
 		if keypress == ord("q"):
 			break
+		
+		if keypress == ord("t"):
+			cv2.imwrite("dataset/{}.jpg".format(counter), thresholded)
+			counter += 1
 
 # free up memory
 camera.release()
